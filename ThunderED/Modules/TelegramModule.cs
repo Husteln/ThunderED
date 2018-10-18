@@ -6,6 +6,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using ThunderED.Helpers;
+using static MihaZupan.HttpToSocks5Proxy;
 
 namespace ThunderED.Modules
 {
@@ -35,7 +36,9 @@ namespace ThunderED.Modules
                     await LogHelper.LogError("No relay channels set for Telegram module!", Category);
                     return;
                 }
-                _client = new TelegramBotClient(Settings.TelegramModule.Token);
+				//var proxy = new MihaZupan.HttpToSocks5Proxy("185.36.191.39", 4782, "userid63NM", "110jCb");
+				var proxy = new MihaZupan.HttpToSocks5Proxy(Settings.TelegramModule.ProxyIp, Settings.TelegramModule.ProxyPort, Settings.TelegramModule.ProxyUser, Settings.TelegramModule.ProxyPass);
+                _client = new TelegramBotClient(Settings.TelegramModule.Token, proxy);
                 _client.OnMessage += BotClient_OnMessage;
                 if (!await _client.TestApiAsync())
                 {
