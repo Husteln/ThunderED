@@ -125,12 +125,14 @@ namespace ThunderED.Modules
             {
                 authWebHttpClient.DefaultRequestHeaders.Clear();
                 authWebHttpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
-                var tokenresponse = await authWebHttpClient.GetAsync("https://login.eveonline.com/oauth/verify");
-                var verifyString = await tokenresponse.Content.ReadAsStringAsync();
-                if(JObject.Parse(verifyString)["error"]?.ToString() == "invalid_token")
-                    return null;
-                authWebHttpClient.DefaultRequestHeaders.Clear();
-                return new[] {(string) JObject.Parse(verifyString)["CharacterID"], result[1]};
+                using (var tokenresponse = await authWebHttpClient.GetAsync("https://login.eveonline.com/oauth/verify"))
+                {
+                    var verifyString = await tokenresponse.Content.ReadAsStringAsync();
+                    if (JObject.Parse(verifyString)["error"]?.ToString() == "invalid_token")
+                        return null;
+                    authWebHttpClient.DefaultRequestHeaders.Clear();
+                    return new[] {(string) JObject.Parse(verifyString)["CharacterID"], result[1]};
+                }
             }
 
         }
@@ -424,7 +426,7 @@ namespace ThunderED.Modules
 
                         if (enable && !esiFailed)
                         {
-                            var ch = SettingsManager.Settings.WebAuthModule.AuthReportChannel == 0 ? (context?.Channel?.Id ?? 0UL) : SettingsManager.Settings.WebAuthModule.AuthReportChannel;
+                            var ch = context?.Channel?.Id ?? SettingsManager.Settings.WebAuthModule.AuthReportChannel;
                             await AuthGrantRoles(ch, characterID, foundList, characterData, corporationData, remainder, discordId == 0 ? context.Message.Author.Id : discordId );
 
                             var chId = Convert.ToInt32(characterID);
