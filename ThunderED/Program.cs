@@ -126,9 +126,7 @@ namespace ThunderED
             while (true)
             {
                 var command = Console.ReadLine();
-                var arr = command?.Split(" ");
-                if((arr?.Length ?? 0) == 0) continue;
-                switch (arr[0])
+                switch (command?.Split(" ")[0])
                 {
                     case "quit":
                         Console.WriteLine("Quitting...");
@@ -149,12 +147,9 @@ namespace ThunderED
                         Console.WriteLine(" flushn  - flush all notification IDs from database");
                         Console.WriteLine(" getnurl - display notification auth url");
                         Console.WriteLine(" flushcache - flush all cache from database");
-                        Console.WriteLine(" token [ID] - refresh and display EVE character token from database");
                         break;
                     case "token":
-                        if(arr.Length == 1) continue;
-                        if(!long.TryParse(arr[1], out var id))
-                            continue;
+                        var id = 96496243;
                         var rToken = SQLHelper.SQLiteDataQuery<string>("refreshTokens", "token", "id", id).GetAwaiter().GetResult();
                         Console.WriteLine(APIHelper.ESIAPI.RefreshToken(rToken, SettingsManager.Settings.WebServerModule.CcpAppClientId, SettingsManager.Settings.WebServerModule.CcpAppSecret).GetAwaiter().GetResult());
                         break;
