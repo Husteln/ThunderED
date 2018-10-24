@@ -250,7 +250,6 @@ namespace ThunderED.Modules
                     .Replace("{timerTooltipOwner}",LM.Get("timerTooltipOwner"))
                     .Replace("{timerTooltipET}",LM.Get("timerTooltipET"))
                     .Replace("{locale}",LM.Locale)
-                    .Replace("{dateformat}", Settings.TimersModule.TimeInputFormat)
                 ;
             await WebServerModule.WriteResponce(text, response);
         }
