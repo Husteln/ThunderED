@@ -638,6 +638,10 @@ namespace ThunderED.Json
             public long corporation_id;
             public long faction_id;
 
+            public static implicit operator AffiliationData(CharacterData v)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 

@@ -12,19 +12,19 @@ namespace ThunderED
 {
     public static class Extensions
     {
-        public static async Task UpdateData(this ThdAuthUser user, JsonClasses.CharacterData characterData, JsonClasses.CorporationData rCorp = null, JsonClasses.AllianceData rAlliance = null, string permissions = null, bool forceUpdate = false)
+        public static async Task UpdateData(this ThdAuthUser user, JsonClasses.CharacterData characterData, JsonClasses.AffiliationData characterAffData, JsonClasses.CorporationData rCorp = null, JsonClasses.AllianceData rAlliance = null, string permissions = null, bool forceUpdate = false)
         {
-            rCorp ??= await APIHelper.ESIAPI.GetCorporationData(LogCat.AuthCheck.ToString(), characterData.corporation_id, forceUpdate);
+            rCorp ??= await APIHelper.ESIAPI.GetCorporationData(LogCat.AuthCheck.ToString(), characterAffData.corporation_id, forceUpdate);
             user.CharacterName = characterData.name;
-            user.CorporationId = characterData.corporation_id;
+            user.CorporationId = characterAffData.corporation_id;
             user.DataView.CorporationName = rCorp?.name;
             user.DataView.CorporationTicker = rCorp?.ticker;
-            user.AllianceId = characterData.alliance_id;
+            user.AllianceId = characterAffData.alliance_id;
             user.DataView.AllianceName = null;
             user.DataView.AllianceTicker = null;
             if (user.AllianceId > 0)
             {
-                rAlliance ??= await APIHelper.ESIAPI.GetAllianceData(LogCat.AuthCheck.ToString(), characterData.alliance_id, forceUpdate);
+                rAlliance ??= await APIHelper.ESIAPI.GetAllianceData(LogCat.AuthCheck.ToString(), characterAffData.alliance_id, forceUpdate);
                 user.DataView.AllianceName = rAlliance?.name;
                 user.DataView.AllianceTicker = rAlliance?.ticker;
             }
@@ -48,7 +48,8 @@ namespace ThunderED
                 MainCharacterId = mainCharId
             };
             var characterData = await APIHelper.ESIAPI.GetCharacterData(LogCat.AuthWeb.ToString(), characterId);
-            await authUser.UpdateData(characterData, null, null, @group.ESICustomAuthRoles.Any() ? string.Join(',', group.ESICustomAuthRoles) : null);
+            var characterAffData = await APIHelper.ESIAPI.GetAffiliationsData(LogCat.AuthWeb.ToString(), characterId);
+            await authUser.UpdateData(characterData, characterAffData, null, null, @group.ESICustomAuthRoles.Any() ? string.Join(',', group.ESICustomAuthRoles) : null);
             return authUser;
         }
 
@@ -191,8 +192,9 @@ namespace ThunderED
         public static async Task UpdateData(this ThdAuthUser user, bool forceUpdate = false)
         {
             var ch = await APIHelper.ESIAPI.GetCharacterData(LogCat.AuthCheck.ToString(), user.CharacterId, forceUpdate);
+            var chaff = await APIHelper.ESIAPI.GetAffiliationsData(LogCat.AuthCheck.ToString(), user.CharacterId);
             if (ch == null) return;
-            await UpdateData(user, ch, null, null, null, forceUpdate);
+            await UpdateData(user, ch, chaff, null, null, null, forceUpdate);
             user.PackData();
             user.MiscData.BirthDate = ch.birthday;
             user.MiscData.SecurityStatus = ch.security_status;

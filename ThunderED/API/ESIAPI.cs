@@ -989,5 +989,10 @@ namespace ThunderED.API
 
             return null;
         }
+
+        internal Task<JsonClasses.CharacterData> GetAffiliationsData(string reason, long characterId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

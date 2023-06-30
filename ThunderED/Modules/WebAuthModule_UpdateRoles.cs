@@ -171,6 +171,7 @@ namespace ThunderED.Modules
 
                     //get data
                     var characterData = await APIHelper.ESIAPI.GetCharacterData("authCheck", authUser.CharacterId, true);
+                    var characterAffData = await APIHelper.ESIAPI.GetAffiliationsData("authCheck", authUser.CharacterId);
                     //skip bad requests
                     if (characterData == null)
                     {
@@ -178,16 +179,16 @@ namespace ThunderED.Modules
                         return null;
                     }
 
-                    if (authUser.CorporationId != characterData.corporation_id || authUser.AllianceId != characterData.alliance_id)
+                    if (authUser.CorporationId != characterAffData.corporation_id || authUser.AllianceId != characterAffData.alliance_id)
                     {
-                        await authUser.UpdateData(characterData);
+                        await authUser.UpdateData(characterData, characterAffData);
                         await DbHelper.SaveAuthUser(authUser);
                     }
 
                     var remroles = new List<SocketRole>();
 
                     await AuthInfoLog(characterData, $"[RUPD] PRE CHARID: {authUser.CharacterId} DID: {discordUserId} AUTH: {authUser.AuthState} GRP: {authUser.GroupName} TOKEN: {!string.IsNullOrEmpty(authUser.GetGeneralTokenString())}", true);
-                    var result = authUser.AuthState == (int)UserStatusEnum.Dumped ? new RoleSearchResult() : await GetRoleGroup(characterData, discordUserId, discordGuild.Id, authUser.GetGeneralTokenString());
+                    var result = authUser.AuthState == (int)UserStatusEnum.Dumped ? new RoleSearchResult() : await GetRoleGroup(characterData, characterAffData, discordUserId, discordGuild.Id, authUser.GetGeneralTokenString());
                     if (result.IsConnectionError)
                     {
                         await AuthWarningLog(characterData, "[RUPD] Connection error while searching for group! Skipping roles update.");
@@ -321,10 +322,10 @@ namespace ThunderED.Modules
                         && !TickManager.IsESIUnreachable && !u.Roles.Select(a=> a.Name).ContainsAnyFromList(authCheckIgnoreRoles))
                     {
                         string alliancePart = null;
-                        if (SettingsManager.Settings.WebAuthModule.EnforceAllianceTickers && characterData.alliance_id.HasValue)
+                        if (SettingsManager.Settings.WebAuthModule.EnforceAllianceTickers && characterAffData.alliance_id.HasValue)
                         {
-                            var ad = await APIHelper.ESIAPI.GetAllianceData("authCheck", characterData.alliance_id.Value, true);
-                            if (characterData.alliance_id.HasValue && ad == null)
+                            var ad = await APIHelper.ESIAPI.GetAllianceData("authCheck", characterAffData.alliance_id.Value, true);
+                            if (characterAffData.alliance_id.HasValue && ad == null)
                             {
                                 //esi fuckup
                             }
@@ -336,7 +337,7 @@ namespace ThunderED.Modules
                         {
                             if (!SettingsManager.Settings.WebAuthModule.EnforceSingleTickerPerUser || string.IsNullOrEmpty(alliancePart))
                             {
-                                var ad = await APIHelper.ESIAPI.GetCorporationData("authCheck", characterData.corporation_id, true);
+                                var ad = await APIHelper.ESIAPI.GetCorporationData("authCheck", characterAffData.corporation_id, true);
                                 if (ad == null)
                                 {
                                     //esi fuckup
@@ -490,7 +491,7 @@ namespace ThunderED.Modules
             return SettingsManager.Settings.WebAuthModule.AuthGroups.FirstOrDefault(a => a.Value.IsEnabled && a.Key.Trim().Equals(trimmedName,StringComparison.OrdinalIgnoreCase));
         }
 
-        public static async Task<RoleSearchResult> GetRoleGroup(JsonClasses.CharacterData characterData, ulong discordUserId, ulong guildId, string refreshToken = null)
+        public static async Task<RoleSearchResult> GetRoleGroup(JsonClasses.CharacterData characterData, JsonClasses.AffiliationData characterAffData, ulong discordUserId, ulong guildId, string refreshToken = null)
         {
             var result = new RoleSearchResult();
             var discordGuildList = APIHelper.DiscordAPI.GetGuildsFromUser(discordUserId);
@@ -575,7 +576,7 @@ namespace ThunderED.Modules
                     ? null
                     : await APIHelper.ESIAPI.GetAccessToken(
                         new ThdToken {Token = refreshToken, CharacterId = characterData.character_id, Type = TokenEnum.General},
-                        $"From WebAuth | Char ID: {characterData?.character_id} | Char name: {characterData?.name}");
+                        $"From WebAuth | Char ID: {characterAffData?.character_id} | Char name: {characterData?.name}");
 
                 var uToken = tq?.Result;
                 if (tq != null)
@@ -630,7 +631,7 @@ namespace ThunderED.Modules
             }
             catch(Exception ex)
             {
-                await LogHelper.LogError($"EXCEPTION: {ex.Message} CHARACTER: {characterData.character_id} [{characterData?.name}][{characterData?.corporation_id}]", LogCat.AuthCheck);
+                await LogHelper.LogError($"EXCEPTION: {ex.Message} CHARACTER: {characterData.character_id} [{characterData?.name}][{characterAffData?.corporation_id}]", LogCat.AuthCheck);
                 throw;
             }
         }

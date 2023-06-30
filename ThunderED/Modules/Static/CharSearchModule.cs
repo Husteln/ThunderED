@@ -28,13 +28,14 @@ namespace ThunderED.Modules.Static
             var characterId = charSearch.character[0];
 
             var characterData = await APIHelper.ESIAPI.GetCharacterData(LogCat.CharSearch.ToString(), characterId, true);
+            var characterAffData = await APIHelper.ESIAPI.GetAffiliationsData(LogCat.CharSearch.ToString(), characterId);
             if (characterData == null)
             {
                 await APIHelper.DiscordAPI.ReplyMessageAsync(context, LM.Get("charNotFound"), true);
                 return;
             }
 
-            var corporationData = await APIHelper.ESIAPI.GetCorporationData(LogCat.CharSearch.ToString(), characterData.corporation_id);
+            var corporationData = await APIHelper.ESIAPI.GetCorporationData(LogCat.CharSearch.ToString(), characterAffData.corporation_id);
 
             var zkillContent = await APIHelper.ZKillAPI.GetCharacterKills(characterId);
             var characterStats = await APIHelper.ZKillAPI.GetCharacterStats(characterId);
@@ -68,7 +69,7 @@ namespace ThunderED.Modules.Static
 
             var lastShip = lastShipType == LM.Get("Unknown") ? null : await APIHelper.ESIAPI.GetTypeId("Default", lastShipType);
             var lastSeenTime = km?.killmail_time.ToString(SettingsManager.Settings.Config.ShortTimeFormat) ?? LM.Get("Unknown");
-            var allianceData = await APIHelper.ESIAPI.GetAllianceData("Default", characterData.alliance_id);
+            var allianceData = await APIHelper.ESIAPI.GetAllianceData("Default", characterAffData.alliance_id);
 
             var alliance = allianceData?.name ?? LM.Get("None");
             var allianceTicker = allianceData != null ? $"[{allianceData?.ticker}]" : "";

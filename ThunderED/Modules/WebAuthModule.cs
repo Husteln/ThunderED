@@ -493,11 +493,12 @@ namespace ThunderED.Modules
                 }
 
                 var rChar = await APIHelper.ESIAPI.GetCharacterData(Reason, user.CharacterId, true);
+                var rCharAff = await APIHelper.ESIAPI.GetAffiliationsData(Reason, user.CharacterId);
                 if (rChar == null) return;
 
                 if (user.CorporationId != rChar.corporation_id || user.AllianceId != rChar.alliance_id)
                 {
-                    await user.UpdateData(rChar);
+                    await user.UpdateData(rChar, rCharAff);
                     await DbHelper.SaveAuthUser(user);
                 }
 
@@ -568,7 +569,7 @@ namespace ThunderED.Modules
         {
             var stands = await APIHelper.ESIAPI.GetCharacterContacts(Reason, data.CharacterId, token);
             data.PersonalStands = stands.Data.IsFailed ? data.PersonalStands : stands.Result;
-            var rChar = await APIHelper.ESIAPI.GetCharacterData(Reason, data.CharacterId, true);
+            var rChar = await APIHelper.ESIAPI.GetAffiliationsData(Reason, data.CharacterId);
             if (rChar != null)
             {
                 stands = await APIHelper.ESIAPI.GetCorpContacts(Reason, rChar.corporation_id, token);
@@ -643,6 +644,7 @@ namespace ThunderED.Modules
         internal static async Task AuthUser(ICommandContext context, string remainder, ulong discordId, ulong guildId)
         {
             JsonClasses.CharacterData characterData = null;
+            JsonClasses.AffiliationData characterAffData = null;
             try
             {
                 discordId = discordId > 0 ? discordId : context.Message.Author.Id;
@@ -683,9 +685,10 @@ namespace ThunderED.Modules
                 }
                
                 characterData = await APIHelper.ESIAPI.GetCharacterData("Auth", authUser.CharacterId, true);
+                characterAffData = await APIHelper.ESIAPI.GetAffiliationsData("Auth", authUser.CharacterId);
 
                 //check if we fit some group
-                var result = await GetRoleGroup(characterData, discordId, guildId, authUser.GetGeneralTokenString());
+                var result = await GetRoleGroup(characterData, characterAffData, discordId, guildId, authUser.GetGeneralTokenString());
                 if (result.IsConnectionError)
                 {
                     await AuthWarningLog(authUser, $"Possible connection error while processing auth request(search for group)!");
@@ -740,7 +743,7 @@ namespace ThunderED.Modules
                     authUser.SetStateAuthed();
                     authUser.RegCode = null;
 
-                    await authUser.UpdateData(characterData, null, null, @group.ESICustomAuthRoles.Any() ? string.Join(',', group.ESICustomAuthRoles) : null);
+                    await authUser.UpdateData(characterData, characterAffData, null, null, @group.ESICustomAuthRoles.Any() ? string.Join(',', group.ESICustomAuthRoles) : null);
 
                     authUser.Id = 0; //we clean up prev regs so new user here
                     await DbHelper.SaveAuthUser(authUser);
