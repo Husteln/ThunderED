@@ -171,7 +171,7 @@ namespace ThunderED.Modules
 
                     //get data
                     var characterData = await APIHelper.ESIAPI.GetCharacterData("authCheck", authUser.CharacterId, true);
-                    var characterAffData = await APIHelper.ESIAPI.GetAffiliationsData("authCheck", authUser.CharacterId);
+                    var characterAffData = await APIHelper.ESIAPI.GetAffiliationsDataSingle("authCheck", authUser.CharacterId);
                     //skip bad requests
                     if (characterData == null)
                     {

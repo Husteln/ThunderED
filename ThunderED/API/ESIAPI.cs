@@ -100,6 +100,14 @@ namespace ThunderED.API
          {
             return await APIHelper.PostWrapperWithResult<List<JsonClasses.AffiliationData>>($"{SettingsManager.Settings.Config.ESIAddress}latest/characters/affiliation/", JsonConvert.SerializeObject(idList), reason, null);
          }
+         
+         public async Task<JsonClasses.AffiliationData> GetAffiliationsDataSingle(string reason, object id)
+         {
+            List<string> idlist = new List<string>{id.ToString()};
+            var result =  await APIHelper.PostWrapperWithResult<List<JsonClasses.AffiliationData>>($"{SettingsManager.Settings.Config.ESIAddress}latest/characters/affiliation/", JsonConvert.SerializeObject(idlist), reason, null);
+            JsonClasses.AffiliationData res = result.First();
+            return res;
+         }
 
         public async Task<object> GetMemberEntityProperty(string reason, object id, string propertyName)
         {

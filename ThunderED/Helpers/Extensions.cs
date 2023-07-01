@@ -48,7 +48,7 @@ namespace ThunderED
                 MainCharacterId = mainCharId
             };
             var characterData = await APIHelper.ESIAPI.GetCharacterData(LogCat.AuthWeb.ToString(), characterId);
-            var characterAffData = await APIHelper.ESIAPI.GetAffiliationsData(LogCat.AuthWeb.ToString(), characterId);
+            var characterAffData = await APIHelper.ESIAPI.GetAffiliationsDataSingle(LogCat.AuthWeb.ToString(), characterId);
             await authUser.UpdateData(characterData, characterAffData, null, null, @group.ESICustomAuthRoles.Any() ? string.Join(',', group.ESICustomAuthRoles) : null);
             return authUser;
         }
@@ -192,7 +192,7 @@ namespace ThunderED
         public static async Task UpdateData(this ThdAuthUser user, bool forceUpdate = false)
         {
             var ch = await APIHelper.ESIAPI.GetCharacterData(LogCat.AuthCheck.ToString(), user.CharacterId, forceUpdate);
-            var chaff = await APIHelper.ESIAPI.GetAffiliationsData(LogCat.AuthCheck.ToString(), user.CharacterId);
+            var chaff = await APIHelper.ESIAPI.GetAffiliationsDataSingle(LogCat.AuthCheck.ToString(), user.CharacterId);
             if (ch == null) return;
             await UpdateData(user, ch, chaff, null, null, null, forceUpdate);
             user.PackData();

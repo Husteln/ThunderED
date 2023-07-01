@@ -633,10 +633,10 @@ namespace ThunderED.Json
 
         public class AffiliationData
         {
-            public long alliance_id;
-            public long character_id;
-            public long corporation_id;
-            public long faction_id;
+            public long? alliance_id { get; set; }
+            public long character_id { get; set; }
+            public long corporation_id { get; set; }
+            public long faction_id { get; set; }
 
         }
     }

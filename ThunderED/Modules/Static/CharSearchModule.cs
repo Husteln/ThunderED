@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web;
 using Discord;
@@ -28,7 +29,7 @@ namespace ThunderED.Modules.Static
             var characterId = charSearch.character[0];
 
             var characterData = await APIHelper.ESIAPI.GetCharacterData(LogCat.CharSearch.ToString(), characterId, true);
-            var characterAffData = await APIHelper.ESIAPI.GetAffiliationsData(LogCat.CharSearch.ToString(), characterId);
+            var characterAffData = await APIHelper.ESIAPI.GetAffiliationsDataSingle(LogCat.CharSearch.ToString(), characterId);
             if (characterData == null)
             {
                 await APIHelper.DiscordAPI.ReplyMessageAsync(context, LM.Get("charNotFound"), true);

@@ -493,7 +493,7 @@ namespace ThunderED.Modules
                 }
 
                 var rChar = await APIHelper.ESIAPI.GetCharacterData(Reason, user.CharacterId, true);
-                var rCharAff = await APIHelper.ESIAPI.GetAffiliationsData(Reason, user.CharacterId);
+                var rCharAff = await APIHelper.ESIAPI.GetAffiliationsDataSingle(Reason, user.CharacterId);
                 if (rChar == null) return;
 
                 if (user.CorporationId != rChar.corporation_id || user.AllianceId != rChar.alliance_id)
@@ -569,7 +569,7 @@ namespace ThunderED.Modules
         {
             var stands = await APIHelper.ESIAPI.GetCharacterContacts(Reason, data.CharacterId, token);
             data.PersonalStands = stands.Data.IsFailed ? data.PersonalStands : stands.Result;
-            var rChar = await APIHelper.ESIAPI.GetAffiliationsData(Reason, data.CharacterId);
+            var rChar = await APIHelper.ESIAPI.GetAffiliationsDataSingle(Reason, data.CharacterId);
             if (rChar != null)
             {
                 stands = await APIHelper.ESIAPI.GetCorpContacts(Reason, rChar.corporation_id, token);
@@ -685,7 +685,7 @@ namespace ThunderED.Modules
                 }
                
                 characterData = await APIHelper.ESIAPI.GetCharacterData("Auth", authUser.CharacterId, true);
-                characterAffData = await APIHelper.ESIAPI.GetAffiliationsData("Auth", authUser.CharacterId);
+                characterAffData = await APIHelper.ESIAPI.GetAffiliationsDataSingle("Auth", authUser.CharacterId);
 
                 //check if we fit some group
                 var result = await GetRoleGroup(characterData, characterAffData, discordId, guildId, authUser.GetGeneralTokenString());
