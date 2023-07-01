@@ -109,7 +109,7 @@ namespace ThunderED.Modules
             if(group == null) return;
             List<JsonClasses.IndustryJob> esiJobs;
 
-            var corpID = isCorp ? (await APIHelper.ESIAPI.GetCharacterData(Reason, characterID))?.corporation_id ?? 0 : 0;
+            var corpID = isCorp ? (await APIHelper.ESIAPI.GetAffiliationsDataSingle(Reason, characterID))?.corporation_id ?? 0 : 0;
             
             if (isCorp)
             {

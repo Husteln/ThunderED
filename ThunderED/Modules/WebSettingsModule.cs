@@ -65,7 +65,7 @@ namespace ThunderED.Modules
             }
         }
 
-        private async Task<WCEAccessFilter> CheckAccess(long characterId, JsonClasses.CharacterData rChar)
+        private async Task<WCEAccessFilter> CheckAccess(long characterId, JsonClasses.CharacterData rChar, JsonClasses.AffiliationData rCharAff)
         {
             var authgroups = Settings.WebConfigEditorModule.GetEnabledGroups();
 
@@ -110,8 +110,8 @@ namespace ThunderED.Modules
                 var accessChars = GetParsedCharacters(filterName) ?? new List<long>();
                 var accessCorps = GetParsedCorporations(filterName) ?? new List<long>();
                 var accessAlliance = GetParsedAlliances(filterName) ?? new List<long>();
-                if (!accessCorps.Contains(rChar.corporation_id) && (!rChar.alliance_id.HasValue || !(rChar.alliance_id > 0) || (!accessAlliance.Contains(
-                                                                        rChar.alliance_id
+                if (!accessCorps.Contains(rCharAff.corporation_id) && (!rCharAff.alliance_id.HasValue || !(rCharAff.alliance_id > 0) || (!accessAlliance.Contains(
+                                                                        rCharAff.alliance_id
                                                                             .Value))))
                 {
                     if (!accessChars.Contains(characterId))

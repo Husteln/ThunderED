@@ -172,8 +172,9 @@ namespace ThunderED.Modules
                         : (await APIHelper.ESIAPI.GetCharacterData(Reason, entry.acceptor_id))?.name;
 
                     var ch = await APIHelper.ESIAPI.GetCharacterData(Reason, id);
+                    var chAff = await APIHelper.ESIAPI.GetAffiliationsDataSingle(Reason, id);
                     var itemList = await ContractNotificationsModule.GetContractItemsString(Reason,
-                        entry.for_corporation, ch.corporation_id, id, entry.contract_id, inspectToken);
+                        entry.for_corporation, chAff.corporation_id, id, entry.contract_id, inspectToken);
 
                     list.Add(new WebContract
                     {

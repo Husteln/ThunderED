@@ -127,7 +127,7 @@ namespace ThunderED.Modules
             var maxContracts = Settings.ContractNotificationsModule.MaxTrackingCount > 0 ? Settings.ContractNotificationsModule.MaxTrackingCount : 150;
             List<JsonClasses.Contract> contracts;
 
-            var corpID = isCorp ? (await APIHelper.ESIAPI.GetCharacterData(Reason, characterID))?.corporation_id ?? 0 : 0;
+            var corpID = isCorp ? (await APIHelper.ESIAPI.GetAffiliationsDataSingle(Reason, characterID))?.corporation_id ?? 0 : 0;
             if (isCorp)
             {
                 var etag = _corpEtokens.GetOrNull(characterID);

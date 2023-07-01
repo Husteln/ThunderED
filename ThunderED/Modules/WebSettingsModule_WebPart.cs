@@ -11,7 +11,7 @@ namespace ThunderED.Modules
         public async Task<WCEAccessFilter> GetAccess(long userId)
         {
             if (TickManager.IsESIUnreachable || TickManager.IsNoConnection) return new WCEAccessFilter();
-            return await CheckAccess(userId, await APIHelper.ESIAPI.GetCharacterData("Web", userId, true));
+            return await CheckAccess(userId, await APIHelper.ESIAPI.GetCharacterData("Web", userId, true),await APIHelper.ESIAPI.GetAffiliationsDataSingle("Web", userId));
         }
 
         public async Task WebSaveSimplifiedAuth(List<SimplifiedAuthEntity> list)

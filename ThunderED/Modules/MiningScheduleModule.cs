@@ -172,7 +172,7 @@ namespace ThunderED.Modules
                         continue;
                     }
 
-                    var rChar = await APIHelper.ESIAPI.GetCharacterData(Reason, token.CharacterId, true);
+                    var rChar = await APIHelper.ESIAPI.GetAffiliationsDataSingle(Reason, token.CharacterId);
                     if (rChar == null)
                     {
                         await LogHelper.LogWarning($"Failed to refresh character {token.CharacterId}");
@@ -315,7 +315,7 @@ namespace ThunderED.Modules
                         continue;
                     }
 
-                    var rChar = await APIHelper.ESIAPI.GetCharacterData(Reason, token.CharacterId, true);
+                    var rChar = await APIHelper.ESIAPI.GetAffiliationsDataSingle(Reason, token.CharacterId);
                     if (rChar == null)
                     {
                         await LogHelper.LogWarning($"Failed to refresh character {token.CharacterId}", Category);

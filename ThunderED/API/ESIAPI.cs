@@ -40,7 +40,7 @@ namespace ThunderED.API
         public async Task RemoveAllCharacterDataFromCache(object id)
         {
             if(id == null) return;
-            var user = await GetCharacterData("ESIAPI", id);
+            var user = await GetAffiliationsDataSingle("ESIAPI", id);
             if(user == null) return;
             await RemoveDbCache("CharacterData", id.ToString());
             await RemoveCorporationFromCache(user.corporation_id);

@@ -178,9 +178,10 @@ namespace ThunderED.Modules
                     case "character":
                         {
                             var ch = await APIHelper.ESIAPI.GetCharacterData(Reason, id);
-                            var corp = await APIHelper.ESIAPI.GetCorporationData(Reason, ch.corporation_id);
+                            var chAff = await APIHelper.ESIAPI.GetAffiliationsDataSingle(Reason, id);
+                            var corp = await APIHelper.ESIAPI.GetCorporationData(Reason, chAff.corporation_id);
                             var ally = corp.alliance_id.HasValue
-                                ? await APIHelper.ESIAPI.GetCorporationData(Reason, ch.corporation_id)
+                                ? await APIHelper.ESIAPI.GetCorporationData(Reason, chAff.corporation_id)
                                 : null;
                             snapshot.AllianceName = ally?.name;
                             snapshot.AllianceTicker = ally?.ticker;

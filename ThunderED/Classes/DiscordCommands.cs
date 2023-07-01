@@ -385,7 +385,7 @@ namespace ThunderED.Classes
             var authUser = await DbHelper.GetAuthUserByDiscordId(Context.User.Id);
             if (skip || authUser != null)
             {
-                var ch = await APIHelper.ESIAPI.GetCharacterData("Discord", authUser.CharacterId, true);
+                var ch = await APIHelper.ESIAPI.GetAffiliationsDataSingle("Discord", authUser.CharacterId);
                 if (skip || ch != null)
                 {
                     if (!skip && (!ch.alliance_id.HasValue || !allys.Contains(ch.alliance_id.Value) && !corps.Contains(ch.corporation_id) && !chars.Contains(authUser.CharacterId)))

@@ -171,13 +171,14 @@ namespace ThunderED.Modules
                         var characterId = result?[0];
 
                         var rChar = await APIHelper.ESIAPI.GetCharacterData(Reason, characterId, true);
+                        var rCharAff = await APIHelper.ESIAPI.GetAffiliationsDataSingle(Reason, characterId);
                         if (rChar == null)
                             return WebQueryResult.EsiFailure;
 
                         var longCharacterId = Convert.ToInt64(characterId);
 
-                        var corpID = rChar?.corporation_id ?? 0;
-                        var rCorp = await APIHelper.ESIAPI.GetCorporationData(Reason, rChar?.corporation_id, true);
+                        var corpID = rCharAff?.corporation_id ?? 0;
+                        var rCorp = await APIHelper.ESIAPI.GetCorporationData(Reason, rCharAff?.corporation_id, true);
                         if (rCorp == null)
                             return WebQueryResult.EsiFailure;
 
@@ -260,12 +261,12 @@ namespace ThunderED.Modules
                             {
                                 group = inputGroup;
                                 if ((await GetAuthRoleEntityById(
-                                        new KeyValuePair<string, WebAuthGroup>(inputGroupName, inputGroup), rChar))
+                                        new KeyValuePair<string, WebAuthGroup>(inputGroupName, inputGroup), rChar, rCharAff))
                                     .RoleEntities.Any())
                                 {
                                     groupName = inputGroupName;
                                     add = true;
-                                    cFoundList.Add(rChar.corporation_id);
+                                    cFoundList.Add(rCharAff.corporation_id);
                                 }
                             }
                             else
@@ -282,10 +283,10 @@ namespace ThunderED.Modules
                                     //general auth
                                     var gResult =
                                         await GetAuthRoleEntityById(searchFor.ToDictionary(a => a.Key, a => a.Value),
-                                            rChar);
+                                            rChar, rCharAff);
                                     if (gResult.RoleEntities.Any())
                                     {
-                                        cFoundList.Add(rChar.corporation_id);
+                                        cFoundList.Add(rCharAff.corporation_id);
                                         groupName = gResult.GroupName;
                                         group = gResult.Group;
                                         add = true;
