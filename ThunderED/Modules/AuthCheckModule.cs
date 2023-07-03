@@ -122,7 +122,7 @@ namespace ThunderED.Modules
         private async Task CheckDBUsers(bool manual)
         {
             //Check inactive users are correct
-            if (DateTime.Now > _lastAuthCheck.AddMinutes(2) || manual)
+            if (DateTime.Now > _lastAuthCheck.AddMinutes(Settings.WebAuthModule.AuthCheckIntervalMinutes) || manual)
             {
                 _lastAuthCheck = DateTime.Now;
 
@@ -139,7 +139,7 @@ namespace ThunderED.Modules
 
         private async Task CheckDiscordUsers(bool manual)
         {
-            if (DateTime.Now > _lastDiscordAuthCheck.AddMinutes(5) || manual)
+            if (DateTime.Now > _lastDiscordAuthCheck.AddMinutes(Settings.WebAuthModule.AuthCheckIntervalMinutes) || manual)
             {
                 _lastDiscordAuthCheck = DateTime.Now;
                 await LogHelper.LogModule("Running Discord users auth check...", Category);
