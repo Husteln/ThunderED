@@ -319,7 +319,7 @@ namespace ThunderED.Modules
                     var eveName = characterData.name;
 
                     if ((SettingsManager.Settings.WebAuthModule.EnforceCorpTickers || SettingsManager.Settings.WebAuthModule.EnforceCharName || SettingsManager.Settings.WebAuthModule.EnforceAllianceTickers) 
-                        && !TickManager.IsESIUnreachable && !u.Roles.Select(a=> a.Name).ContainsAnyFromList(authCheckIgnoreRoles))
+                        && !TickManager.IsESIUnreachable)
                     {
                         string alliancePart = null;
                         if (SettingsManager.Settings.WebAuthModule.EnforceAllianceTickers && characterAffData.alliance_id.HasValue)
