@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -29,13 +30,11 @@ namespace ThunderED.Modules.Static
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Add("User-Agent", SettingsManager.DefaultUserAgent);
 
-
-                var value = command.ToLower().StartsWith("search")
-                    ? command.TrimStart(new char[] {'s', 'e', 'a', 'r', 'c', 'h'})
-                    : command;
+                var regex = new Regex("(x[0-9]+$)|(^[[].+)");
+                var value = regex.Replace(command, string.Empty);
 
                 string[] lines = value.Split(
-                    new string[] { Environment.NewLine },
+                    Environment.NewLine,
                     StringSplitOptions.RemoveEmptyEntries
                 );
 
@@ -150,14 +149,16 @@ namespace ThunderED.Modules.Static
                     )
                     .AddField(
                         $"{LM.Get("Buy")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
-                        $"{mi.Item1.Value.buy.max:N2} / {mi.Item1.Value.buy.weightedAverage:N2} / {mi.Item1.Value.buy.min:N2}",
+                        $"{mi.Item1.Value.buy.max} / {mi.Item1.Value.buy.weightedAverage} / {mi.Item1.Value.buy.min}",
                         true
                     )
                     .AddField(
                         $"{LM.Get("Sell")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
-                        $"{mi.Item1.Value.sell.max:N2} / {mi.Item1.Value.sell.weightedAverage:N2} / {mi.Item1.Value.sell.min:N2,}",
+                        $"{mi.Item1.Value.sell.max} / {mi.Item1.Value.sell.weightedAverage} / {mi.Item1.Value.sell.min}",
                         true
-                    );
+                    )
+                    .WithFooter($"https://market.fuzzwork.co.uk/station/{systemAddon}/type/{mi.Item2.id}")
+                    ;
                     // .AddField(LM.Get("Buy"), $"{LM.Get("marketHigh")}: {mi.Item1.Value.buy.max:N2}{Environment.NewLine}" +
                     //                          $"{LM.Get("marketMid")}: {mi.Item1.Value.buy.weightedAverage:N2}{Environment.NewLine}" +
                     //                          $"{LM.Get("marketLow")}: {mi.Item1.Value.buy.min:N2}{Environment.NewLine}" +
