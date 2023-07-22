@@ -35,7 +35,7 @@ namespace ThunderED.Modules.Static
                     : command;
 
                 var token = await APIHelper.ESIAPI.GetSearchTokenString();
-                var result =  await APIHelper.ESIAPI.SearchTypeEntity("PriceCheck", value, token);
+                var result =  await APIHelper.ESIAPI.SearchPcEntity("PriceCheck", value, token);
 
                 if (result == null)
                 {
@@ -45,7 +45,7 @@ namespace ThunderED.Modules.Static
                 }
 
 
-                if (string.IsNullOrWhiteSpace(result.inventory_type?.ToString()))
+                if (string.IsNullOrWhiteSpace(result.inventory_type?.ToString()) || result.inventory_type.Count() == 0)
                     await APIHelper.DiscordAPI.ReplyMessageAsync(context, LM.Get("itemNotExist",command));
                 else if (result.inventory_type.Count() > 1)
                 {
@@ -102,7 +102,7 @@ namespace ThunderED.Modules.Static
                     var embed = builder.Build();
                     await APIHelper.DiscordAPI.SendMessageAsync(channel, "", embed).ConfigureAwait(false);
                 }
-                else
+                else if (result.inventory_type.Count() == 1)
                 {
                     try
                     {
