@@ -781,6 +781,13 @@ namespace ThunderED.API
             return await APIHelper.RequestWrapper<JsonClasses.SearchResult>($"{SettingsManager.Settings.Config.ESIAddress}latest/characters/{SettingsManager.Settings.Config.SearchCharacterId}/search/?categories=inventory_type&datasource=tranquility&language={_language}&search={searchValue}&strict=true", reason, authHeader);
         }
 
+        public async Task<JsonClasses.SearchResult> SearchPcEntity(string reason, string value, string token)
+        {
+            var searchValue = HttpUtility.UrlEncode(value);
+            var authHeader = $"Bearer {token}";
+            return await APIHelper.RequestWrapper<JsonClasses.SearchResult>($"{SettingsManager.Settings.Config.ESIAddress}latest/characters/{SettingsManager.Settings.Config.SearchCharacterId}/search/?categories=inventory_type&datasource=tranquility&language={_language}&search={searchValue}&strict=false", reason, authHeader);
+        }
+
 
         public async Task<JsonClasses.SearchResult> SearchMemberEntity(string reason, string value, string token, bool isAggressive = false)
         {
