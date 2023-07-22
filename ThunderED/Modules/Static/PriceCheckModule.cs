@@ -34,103 +34,62 @@ namespace ThunderED.Modules.Static
                     ? command.TrimStart(new char[] {'s', 'e', 'a', 'r', 'c', 'h'})
                     : command;
 
+                string[] lines = value.Split(
+                    new string[] { Environment.NewLine },
+                    StringSplitOptions.None
+                );
+
+                List<JsonClasses.SearchResult> result = new List<JsonClasses.SearchResult>();
+                JsonClasses.SearchResult item = new JsonClasses.SearchResult();
+                // List<JsonClasses.SearchName> itemNameResults = new List<JsonClasses.SearchName>();
+                List<long> items = new List<long>();
+                List<JsonClasses.SearchName> names = new List<JsonClasses.SearchName>();
                 var token = await APIHelper.ESIAPI.GetSearchTokenString();
-                var result =  await APIHelper.ESIAPI.SearchPcEntity("PriceCheck", value, token);
-
-                if (result == null)
+                for (int i = 0; i < lines.Length; i++)
                 {
-                    await APIHelper.DiscordAPI.ReplyMessageAsync(context, LM.Get("ESIFailure"));
-                    await Task.CompletedTask;
-                    return;
-                }
-
-
-                if (string.IsNullOrWhiteSpace(result.inventory_type?.ToString()) || result.inventory_type.Count() == 0)
-                    await APIHelper.DiscordAPI.ReplyMessageAsync(context, LM.Get("itemNotExist",command));
-                else if (result.inventory_type.Count() > 1)
-                {
-                    await APIHelper.DiscordAPI.ReplyMessageAsync(context, LM.Get("seeDM"));
-
-                    var channel = await context.Message.Author.CreateDMChannelAsync();
-
-                    var tmp = JsonConvert.SerializeObject(result.inventory_type);
-                    var httpContent = new StringContent(tmp);
-
-                    var itemName = await httpClient.PostAsync($"{SettingsManager.Settings.Config.ESIAddress}latest/universe/names/?datasource=tranquility", httpContent);
-
-                    if (!itemName.IsSuccessStatusCode)
+                    if (!string.IsNullOrWhiteSpace(lines[i]))
                     {
-                        await APIHelper.DiscordAPI.ReplyMessageAsync(context, channel, LM.Get("ESIFailure")).ConfigureAwait(false);
-                        await Task.CompletedTask;
-                        itemName?.Dispose();
-                        return;
+                        item = await APIHelper.ESIAPI.SearchTypeEntity("PriceCheck", lines[i], token);
                     }
+                     // result[i] = await APIHelper.ESIAPI.SearchTypeEntity("PriceCheck", value, token);
 
-                    var itemNameResult = await itemName.Content.ReadAsStringAsync();
-                    var itemNameResults = JsonConvert.DeserializeObject<List<JsonClasses.SearchName>>(itemNameResult);
-                    itemName?.Dispose();
-
-                    await LogHelper.LogInfo($"Sending {context.Message.Author}'s Price check to {channel.Name}", LogCat.PriceCheck);
-                    var builder = new EmbedBuilder()
-                        .WithColor(new Color(0x00D000))
-                        .WithAuthor(author =>
-                        {
-                            author
-                                .WithName(LM.Get("manyItemsFound"));
-                        })
-                        .WithDescription(LM.Get("searchExample"));
-                    var count = 0;
-                    foreach (var inventoryType in result.inventory_type)
+                    if (item.inventory_type.Count() == 0 && !string.IsNullOrWhiteSpace(lines[i]))
+                        await APIHelper.DiscordAPI.ReplyMessageAsync(context, LM.Get("itemNotExist",lines[i]));
+                    else if (item.inventory_type.Count() >= 1)
                     {
-                        if (count < 25)
+                        items.Add(item.inventory_type[0]);
+                        try
                         {
-                            builder.AddField($"{itemNameResults.FirstOrDefault(x => x.id == inventoryType).name}", "\u200b");
-                        }
-                        else
-                        {
-                            var embed2 = builder.Build();
+                            var httpContent = new StringContent($"[{item.inventory_type[0]}]", Encoding.UTF8, "application/json");
+                            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                            var itemName = await httpClient.PostAsync($"{SettingsManager.Settings.Config.ESIAddress}latest/universe/names/?datasource=tranquility", httpContent);
 
-                            await APIHelper.DiscordAPI.SendMessageAsync(channel, "", embed2).ConfigureAwait(false);
+                            if (!itemName.IsSuccessStatusCode)
+                            {
+                                await APIHelper.DiscordAPI.ReplyMessageAsync(context, LM.Get("ESIFailure"));
+                                await Task.CompletedTask;
+                                itemName?.Dispose();
+                                return;
+                            }
 
-                            builder.Fields.Clear();
-                            count = 0;
-                        }
-
-                        count++;
-                    }
-
-                    var embed = builder.Build();
-                    await APIHelper.DiscordAPI.SendMessageAsync(channel, "", embed).ConfigureAwait(false);
-                }
-                else if (result.inventory_type.Count() == 1)
-                {
-                    try
-                    {
-                        var httpContent = new StringContent($"[{result.inventory_type[0]}]", Encoding.UTF8, "application/json");
-                        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                        var itemName = await httpClient.PostAsync($"{SettingsManager.Settings.Config.ESIAddress}latest/universe/names/?datasource=tranquility", httpContent);
-
-                        if (!itemName.IsSuccessStatusCode)
-                        {
-                            await APIHelper.DiscordAPI.ReplyMessageAsync(context, LM.Get("ESIFailure"));
-                            await Task.CompletedTask;
+                            var itemNameResult = await itemName.Content.ReadAsStringAsync();
+                            var itemNameResults = JsonConvert.DeserializeObject<List<JsonClasses.SearchName>>(itemNameResult)[0];
+                            names.Add(itemNameResults);
                             itemName?.Dispose();
-                            return;
+
+                            // await GoFuzz(httpClient, context, system, item.inventory_type, itemNameResults);
+
                         }
-
-                        var itemNameResult = await itemName.Content.ReadAsStringAsync();
-                        var itemNameResults = JsonConvert.DeserializeObject<List<JsonClasses.SearchName>>(itemNameResult)[0];
-                        itemName?.Dispose();
-
-                        await GoFuzz(httpClient, context, system, result.inventory_type, itemNameResults);
-
+                        catch (Exception ex)
+                        {
+                            await LogHelper.LogEx(ex.Message, ex, LogCat.PriceCheck);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        await LogHelper.LogEx(ex.Message, ex, LogCat.PriceCheck);
-                    }
+
                 }
-            }
+                await GoFuzz(httpClient, context, system, items, names);
+            }                
+
             catch (Exception ex)
             {
                 await APIHelper.DiscordAPI.ReplyMessageAsync(context, "ERROR Please inform Discord/Bot Owner");
@@ -139,7 +98,7 @@ namespace ThunderED.Modules.Static
         }
 
         private static async Task GoFuzz(HttpClient httpClient, ICommandContext context, string system,
-            List<long> idList, JsonClasses.SearchName itemNameResults)
+            List<long> idList, List<JsonClasses.SearchName> itemNameResults)
         {
             var url = "https://market.fuzzwork.co.uk/aggregates/";
 
@@ -163,31 +122,42 @@ namespace ThunderED.Modules.Static
 
             httpClient.DefaultRequestHeaders.Clear();
             httpClient.DefaultRequestHeaders.Add("User-Agent", SettingsManager.DefaultUserAgent);
-            var webReply = await httpClient.GetStringAsync($"{url}{systemAddon}&types={idList[0]}");
+            var webReply = await httpClient.GetStringAsync($"{url}{systemAddon}&types={idList.ToString()}");
             var market = JsonConvert.DeserializeObject<Dictionary<string,JsonFuzz.FuzzItems>>(webReply);
+            // var i = new int();
+            // i = 0;
 
             await LogHelper.LogInfo($"Sending {context.Message.Author}'s Price check", LogCat.PriceCheck);
-            foreach (var marketReply in market.Values)
+            var valuesnames = market.Zip(itemNameResults, (m,i) => Tuple.Create(m,i));
+            foreach (var mi in valuesnames)
             {
                 var builder = new EmbedBuilder()
                     .WithColor(new Color(0x00D000))
-                    .WithThumbnailUrl($"https://image.eveonline.com/Type/{itemNameResults.id}_64.png")
-                    .WithAuthor(author =>
-                    {
-                        author
-                            .WithName($"{LM.Get("Item")}: {itemNameResults.name}")
-                            .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={itemNameResults.id}/");
-                    })
-                    .WithDescription($"{LM.Get("Prices")} {systemTextAddon}")
-                    .AddField(LM.Get("Buy"), $"{LM.Get("marketHigh")}: {marketReply.buy.max:N2}{Environment.NewLine}" +
-                                             $"{LM.Get("marketMid")}: {marketReply.buy.weightedAverage:N2}{Environment.NewLine}" +
-                                             $"{LM.Get("marketLow")}: {marketReply.buy.min:N2}{Environment.NewLine}" +
-                                             $"{LM.Get("Volume")}: {marketReply.buy.volume}", true)
-                    .AddField(LM.Get("Sell"), $"{LM.Get("marketLow")}: {marketReply.sell.min:N2}{Environment.NewLine}" +
-                                              $"{LM.Get("marketMid")}: {marketReply.sell.weightedAverage:N2}{Environment.NewLine}" +
-                                              $"{LM.Get("marketHigh")}: {marketReply.sell.max:N2}{Environment.NewLine}" +
-                                              $"{LM.Get("Volume")}: {marketReply.sell.volume:N0}", true);
-
+                    .WithThumbnailUrl($"https://image.eveonline.com/Type/{mi.Item2.id}_32.png")
+                    // .WithAuthor(author =>
+                    // {
+                    //     author
+                    //         .WithName($"{LM.Get("Item")}: {mi.Item2.name}")
+                    //         .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={mi.Item2.id}/");
+                    // })
+                    // .WithDescription($"{LM.Get("Prices")} {systemTextAddon}")
+                    .AddField($"{LM.Get("Item")}: {mi.Item2.name}",$"{LM.Get("Volume")}: {mi.Item1.Value.buy.volume} / {mi.Item1.Value.sell.volume:N0}")
+                    .AddField(
+                        $"{LM.Get("Buy")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
+                        $"{mi.Item1.Value.buy.max:N2} / {mi.Item1.Value.buy.weightedAverage:N2} / {mi.Item1.Value.buy.min:N2}"
+                    )
+                    .AddField(
+                        $"{LM.Get("Sell")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
+                        $"{mi.Item1.Value.sell.max:N2} / {mi.Item1.Value.sell.weightedAverage:N2} / {mi.Item1.Value.sell.min:N2}"
+                    );
+                    // .AddField(LM.Get("Buy"), $"{LM.Get("marketHigh")}: {mi.Item1.Value.buy.max:N2}{Environment.NewLine}" +
+                    //                          $"{LM.Get("marketMid")}: {mi.Item1.Value.buy.weightedAverage:N2}{Environment.NewLine}" +
+                    //                          $"{LM.Get("marketLow")}: {mi.Item1.Value.buy.min:N2}{Environment.NewLine}" +
+                    //                          $"{LM.Get("Volume")}: {mi.Item1.Value.buy.volume}", true)
+                    // .AddField(LM.Get("Sell"), $"{LM.Get("marketLow")}: {mi.Item1.Value.sell.min:N2}{Environment.NewLine}" +
+                    //                           $"{LM.Get("marketMid")}: {mi.Item1.Value.sell.weightedAverage:N2}{Environment.NewLine}" +
+                    //                           $"{LM.Get("marketHigh")}: {mi.Item1.Value.sell.max:N2}{Environment.NewLine}" +
+                    //                           $"{LM.Get("Volume")}: {mi.Item1.Value.sell.volume:N0}", true);
                 var embed = builder.Build();
                 await APIHelper.DiscordAPI.ReplyMessageAsync(context, "", embed).ConfigureAwait(false);
                 await Task.Delay(500);
