@@ -47,7 +47,7 @@ namespace ThunderED.Modules.Static
                 var token = await APIHelper.ESIAPI.GetSearchTokenString();
                 for (int i = 0; i < lines.Length; i++)
                 {
-                    await LogHelper.LogDebug($"PC lines cycle {i}", LogCat.PriceCheck);
+                    await LogHelper.LogDebug($"PC lines cycle {i}", LogCat.PriceCheck, true);
                     // if (!string.IsNullOrWhiteSpace(lines[i]))
                     // {
                         item = await APIHelper.ESIAPI.SearchTypeEntity("PriceCheck", lines[i], token);
@@ -127,12 +127,12 @@ namespace ThunderED.Modules.Static
             var market = JsonConvert.DeserializeObject<Dictionary<string,JsonFuzz.FuzzItems>>(webReply);
             // var i = new int();
             // i = 0;
-            await LogHelper.LogDebug($"PC Fuzz url: {url}{systemAddon}&types={string.Join(",", idList)}", LogCat.PriceCheck);
+            await LogHelper.LogDebug($"PC Fuzz url: {url}{systemAddon}&types={string.Join(",", idList)}", LogCat.PriceCheck, true);
             await LogHelper.LogInfo($"Sending {context.Message.Author}'s Price check", LogCat.PriceCheck);
             var valuesnames = market.Zip(itemNameResults, (m,i) => Tuple.Create(m,i));
             foreach (var mi in valuesnames)
             {
-                await LogHelper.LogDebug($"PC Fuzz cycle, {mi.Item2.name}", LogCat.PriceCheck);
+                await LogHelper.LogDebug($"PC Fuzz cycle, {mi.Item2.name}", LogCat.PriceCheck, true);
                 var builder = new EmbedBuilder()
                     .WithColor(new Color(0x00D000))
                     .WithThumbnailUrl($"https://image.eveonline.com/Type/{mi.Item2.id}_32.png")
@@ -142,7 +142,7 @@ namespace ThunderED.Modules.Static
                     //         .WithName($"{LM.Get("Item")}: {mi.Item2.name}")
                     //         .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={mi.Item2.id}/");
                     // })
-                    // .WithDescription($"{LM.Get("Prices")} {systemTextAddon}")
+                    .WithDescription($"{LM.Get("Prices")} {systemTextAddon}")
                     .AddField(
                         $"{LM.Get("Item")}: {mi.Item2.name}",
                         $"{LM.Get("Volume")}: {mi.Item1.Value.buy.volume} / {mi.Item1.Value.sell.volume:N0}",
