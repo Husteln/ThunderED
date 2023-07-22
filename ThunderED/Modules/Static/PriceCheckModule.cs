@@ -134,7 +134,7 @@ namespace ThunderED.Modules.Static
                 await LogHelper.LogDebug($"PC Fuzz cycle, {mi.Item2.name}", LogCat.PriceCheck, true);
                 var builder = new EmbedBuilder()
                     .WithColor(new Color(0x00D000))
-                    .WithThumbnailUrl($"https://image.eveonline.com/Type/{mi.Item2.id}_64.png")
+                    // .WithThumbnailUrl($"https://image.eveonline.com/Type/{mi.Item2.id}_32.png")
                     .WithAuthor(author =>
                     {
                         author
