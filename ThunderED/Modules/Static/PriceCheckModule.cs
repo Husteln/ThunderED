@@ -36,7 +36,7 @@ namespace ThunderED.Modules.Static
 
                 string[] lines = value.Split(
                     new string[] { Environment.NewLine },
-                    StringSplitOptions.None
+                    StringSplitOptions.RemoveEmptyEntries
                 );
 
                 List<JsonClasses.SearchResult> result = new List<JsonClasses.SearchResult>();
@@ -47,10 +47,11 @@ namespace ThunderED.Modules.Static
                 var token = await APIHelper.ESIAPI.GetSearchTokenString();
                 for (int i = 0; i < lines.Length; i++)
                 {
-                    if (!string.IsNullOrWhiteSpace(lines[i]))
-                    {
+                    await LogHelper.LogDebug($"PC lines cycle {i}", LogCat.PriceCheck);
+                    // if (!string.IsNullOrWhiteSpace(lines[i]))
+                    // {
                         item = await APIHelper.ESIAPI.SearchTypeEntity("PriceCheck", lines[i], token);
-                    }
+                    // }
                      // result[i] = await APIHelper.ESIAPI.SearchTypeEntity("PriceCheck", value, token);
 
                     if (item.inventory_type.Count() == 0 && !string.IsNullOrWhiteSpace(lines[i]))
@@ -122,15 +123,16 @@ namespace ThunderED.Modules.Static
 
             httpClient.DefaultRequestHeaders.Clear();
             httpClient.DefaultRequestHeaders.Add("User-Agent", SettingsManager.DefaultUserAgent);
-            var webReply = await httpClient.GetStringAsync($"{url}{systemAddon}&types={idList.ToString()}");
+            var webReply = await httpClient.GetStringAsync($"{url}{systemAddon}&types={string.Join(",", idList)}");
             var market = JsonConvert.DeserializeObject<Dictionary<string,JsonFuzz.FuzzItems>>(webReply);
             // var i = new int();
             // i = 0;
-
+            await LogHelper.LogDebug($"PC Fuzz url: {url}{systemAddon}&types={string.Join(",", idList)}", LogCat.PriceCheck);
             await LogHelper.LogInfo($"Sending {context.Message.Author}'s Price check", LogCat.PriceCheck);
             var valuesnames = market.Zip(itemNameResults, (m,i) => Tuple.Create(m,i));
             foreach (var mi in valuesnames)
             {
+                await LogHelper.LogDebug($"PC Fuzz cycle, {mi.Item2.name}", LogCat.PriceCheck);
                 var builder = new EmbedBuilder()
                     .WithColor(new Color(0x00D000))
                     .WithThumbnailUrl($"https://image.eveonline.com/Type/{mi.Item2.id}_32.png")
@@ -141,14 +143,20 @@ namespace ThunderED.Modules.Static
                     //         .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={mi.Item2.id}/");
                     // })
                     // .WithDescription($"{LM.Get("Prices")} {systemTextAddon}")
-                    .AddField($"{LM.Get("Item")}: {mi.Item2.name}",$"{LM.Get("Volume")}: {mi.Item1.Value.buy.volume} / {mi.Item1.Value.sell.volume:N0}")
+                    .AddField(
+                        $"{LM.Get("Item")}: {mi.Item2.name}",
+                        $"{LM.Get("Volume")}: {mi.Item1.Value.buy.volume} / {mi.Item1.Value.sell.volume:N0}",
+                        true
+                    )
                     .AddField(
                         $"{LM.Get("Buy")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
-                        $"{mi.Item1.Value.buy.max:N2} / {mi.Item1.Value.buy.weightedAverage:N2} / {mi.Item1.Value.buy.min:N2}"
+                        $"{mi.Item1.Value.buy.max:N2} / {mi.Item1.Value.buy.weightedAverage:N2} / {mi.Item1.Value.buy.min:N2}",
+                        true
                     )
                     .AddField(
                         $"{LM.Get("Sell")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
-                        $"{mi.Item1.Value.sell.max:N2} / {mi.Item1.Value.sell.weightedAverage:N2} / {mi.Item1.Value.sell.min:N2}"
+                        $"{mi.Item1.Value.sell.max:N2} / {mi.Item1.Value.sell.weightedAverage:N2} / {mi.Item1.Value.sell.min:N2,}",
+                        true
                     );
                     // .AddField(LM.Get("Buy"), $"{LM.Get("marketHigh")}: {mi.Item1.Value.buy.max:N2}{Environment.NewLine}" +
                     //                          $"{LM.Get("marketMid")}: {mi.Item1.Value.buy.weightedAverage:N2}{Environment.NewLine}" +
