@@ -129,36 +129,64 @@ namespace ThunderED.Modules.Static
             await LogHelper.LogDebug($"PC Fuzz url: {url}{systemAddon}&types={string.Join(",", idList)}", LogCat.PriceCheck, true);
             await LogHelper.LogInfo($"Sending {context.Message.Author}'s Price check", LogCat.PriceCheck);
             var valuesnames = market.Zip(itemNameResults, (m,i) => Tuple.Create(m,i));
+
+            var builder = new EmbedBuilder()
+                .WithColor(new Color(0x00D000))
+                .WithDescription($"{LM.Get("Prices")} {systemTextAddon}")
+                .AddField(
+                    $"{LM.Get("Item")}:",
+                    "---",
+                    true
+                )
+                .AddField(
+                    $"{LM.Get("Volume")}: {LM.Get("Buy")}/{LM.Get("Sell")}",
+                    "---",
+                    true
+                )
+                .AddField(
+                    $"{LM.Get("Buy")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
+                    "---",
+                    true
+                )
+                .AddField(
+                    $"{LM.Get("Sell")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
+                    "---",
+                    true
+                );
             foreach (var mi in valuesnames)
             {
                 await LogHelper.LogDebug($"PC Fuzz cycle, {mi.Item2.name}", LogCat.PriceCheck, true);
-                var builder = new EmbedBuilder()
-                    .WithColor(new Color(0x00D000))
+                builder
+                    // .WithColor(new Color(0x00D000))
                     // .WithThumbnailUrl($"https://image.eveonline.com/Type/{mi.Item2.id}_32.png")
-                    .WithAuthor(author =>
-                    {
-                        author
-                            .WithName($"{LM.Get("Item")}: {mi.Item2.name}")
-                            .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={mi.Item2.id}/");
-                    })
-                    .WithDescription($"{LM.Get("Prices")} {systemTextAddon}")
+                    // .WithAuthor(author =>
+                    // {
+                    //     author
+                    //         .WithName($"{LM.Get("Item")}: {mi.Item2.name}")
+                    //         .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={mi.Item2.id}/");
+                    // })
+                    // .WithDescription($"{LM.Get("Prices")} {systemTextAddon}")
                     .AddField(
-                        $"{LM.Get("Volume")}: {LM.Get("Buy")}/{LM.Get("Sell")}",
+                        "---",
+                        $"{mi.Item2.name}",
+                        true
+                    )
+                    .AddField(
+                        "---",
                         $"{mi.Item1.Value.buy.volume}{Environment.NewLine}{mi.Item1.Value.sell.volume}",
                         true
                     )
                     .AddField(
-                        $"{LM.Get("Buy")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
+                        "---",
                         $"{mi.Item1.Value.buy.max}{Environment.NewLine}{mi.Item1.Value.buy.weightedAverage:N2}{Environment.NewLine}{mi.Item1.Value.buy.min}",
                         true
                     )
                     .AddField(
-                        $"{LM.Get("Sell")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
+                        "---",
                         $"{mi.Item1.Value.sell.max}{Environment.NewLine}{mi.Item1.Value.sell.weightedAverage:N2}{Environment.NewLine}{mi.Item1.Value.sell.min}",
                         true
-                    )
-                    .WithFooter($"[Jita](https://market.fuzzwork.co.uk/station/60003760/type/{mi.Item2.id})")
-                    ;
+                    );
+                    // .WithFooter($"https://market.fuzzwork.co.uk/station/60003760/type/{mi.Item2.id}/")
                     // .AddField(LM.Get("Buy"), $"{LM.Get("marketHigh")}: {mi.Item1.Value.buy.max:N2}{Environment.NewLine}" +
                     //                          $"{LM.Get("marketMid")}: {mi.Item1.Value.buy.weightedAverage:N2}{Environment.NewLine}" +
                     //                          $"{LM.Get("marketLow")}: {mi.Item1.Value.buy.min:N2}{Environment.NewLine}" +
@@ -167,10 +195,10 @@ namespace ThunderED.Modules.Static
                     //                           $"{LM.Get("marketMid")}: {mi.Item1.Value.sell.weightedAverage:N2}{Environment.NewLine}" +
                     //                           $"{LM.Get("marketHigh")}: {mi.Item1.Value.sell.max:N2}{Environment.NewLine}" +
                     //                           $"{LM.Get("Volume")}: {mi.Item1.Value.sell.volume:N0}", true);
-                var embed = builder.Build();
-                await APIHelper.DiscordAPI.ReplyMessageAsync(context, "", embed).ConfigureAwait(false);
-                await Task.Delay(500);
             }
+            var embed = builder.Build();
+            await APIHelper.DiscordAPI.ReplyMessageAsync(context, "", embed).ConfigureAwait(false);
+            await Task.Delay(500);
         }
     }
 }
