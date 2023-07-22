@@ -134,7 +134,7 @@ namespace ThunderED.Modules.Static
                 await LogHelper.LogDebug($"PC Fuzz cycle, {mi.Item2.name}", LogCat.PriceCheck, true);
                 var builder = new EmbedBuilder()
                     .WithColor(new Color(0x00D000))
-                    .WithThumbnailUrl($"https://image.eveonline.com/Type/{mi.Item2.id}_32.png")
+                    .WithThumbnailUrl($"https://image.eveonline.com/Type/{mi.Item2.id}_64.png")
                     // .WithAuthor(author =>
                     // {
                     //     author
@@ -144,20 +144,24 @@ namespace ThunderED.Modules.Static
                     .WithDescription($"{LM.Get("Prices")} {systemTextAddon}")
                     .AddField(
                         $"{LM.Get("Item")}: {mi.Item2.name}",
-                        $"{LM.Get("Volume")}: {mi.Item1.Value.buy.volume} / {mi.Item1.Value.sell.volume:N0}",
+                        $"{LM.Get("Volume")}: {mi.Item1.Value.buy.volume} / {mi.Item1.Value.sell.volume}",
                         true
                     )
                     .AddField(
                         $"{LM.Get("Buy")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
-                        $"{mi.Item1.Value.buy.max} / {mi.Item1.Value.buy.weightedAverage} / {mi.Item1.Value.buy.min}",
+                        $"{mi.Item1.Value.buy.max} / {mi.Item1.Value.buy.weightedAverage:N2} / {mi.Item1.Value.buy.min}",
                         true
                     )
                     .AddField(
                         $"{LM.Get("Sell")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
-                        $"{mi.Item1.Value.sell.max} / {mi.Item1.Value.sell.weightedAverage} / {mi.Item1.Value.sell.min}",
+                        $"{mi.Item1.Value.sell.max} / {mi.Item1.Value.sell.weightedAverage:N2} / {mi.Item1.Value.sell.min}",
                         true
                     )
-                    .WithFooter($"https://market.fuzzwork.co.uk/station/{systemAddon}/type/{mi.Item2.id}")
+                    .AddField(
+                        "                  ",
+                        "                  ",
+                        true)
+                    .WithFooter($"[Jita](https://market.fuzzwork.co.uk/station/60003760/type/{mi.Item2.id})")
                     ;
                     // .AddField(LM.Get("Buy"), $"{LM.Get("marketHigh")}: {mi.Item1.Value.buy.max:N2}{Environment.NewLine}" +
                     //                          $"{LM.Get("marketMid")}: {mi.Item1.Value.buy.weightedAverage:N2}{Environment.NewLine}" +
