@@ -134,22 +134,17 @@ namespace ThunderED.Modules.Static
                 .WithColor(new Color(0x00D000))
                 .WithDescription($"{LM.Get("Prices")} {systemTextAddon}")
                 .AddField(
-                    $"{LM.Get("Item")}:",
+                    $"{LM.Get("Item")}{Environment.NewLine}{LM.Get("Volume")}:",
                     "---",
                     true
                 )
                 .AddField(
-                    $"{LM.Get("Volume")}: {LM.Get("Buy")}/{LM.Get("Sell")}",
+                    $"{LM.Get("Buy")}:{Environment.NewLine}{LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
                     "---",
                     true
                 )
                 .AddField(
-                    $"{LM.Get("Buy")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
-                    "---",
-                    true
-                )
-                .AddField(
-                    $"{LM.Get("Sell")}: {LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
+                    $"{LM.Get("Sell")}:{Environment.NewLine}{LM.Get("marketHigh")}/{LM.Get("marketMid")}/{LM.Get("marketLow")}",
                     "---",
                     true
                 );
@@ -168,12 +163,7 @@ namespace ThunderED.Modules.Static
                     // .WithDescription($"{LM.Get("Prices")} {systemTextAddon}")
                     .AddField(
                         "---",
-                        $"{mi.Item2.name}",
-                        true
-                    )
-                    .AddField(
-                        "---",
-                        $"{mi.Item1.Value.buy.volume}{Environment.NewLine}{mi.Item1.Value.sell.volume}",
+                        $"{mi.Item2.name}{Environment.NewLine}{mi.Item1.Value.buy.volume}{Environment.NewLine}{mi.Item1.Value.sell.volume}",
                         true
                     )
                     .AddField(
