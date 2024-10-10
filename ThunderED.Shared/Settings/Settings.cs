@@ -1254,7 +1254,7 @@ namespace ThunderED
         [Required]
         public ObservableCollection<TelegramRelay> RelayChannels { get; set; } = new ObservableCollection<TelegramRelay>();
 #else
-        public List<TelegramRelay> RelayChannels { get; set; } = new List<TelegramRelay>();
+        public List<KeyValuePair<string, TelegramRelay>> RelayChannels { get; set; } =  new ();
 #endif
 #if EDITOR
         public override string this[string columnName]

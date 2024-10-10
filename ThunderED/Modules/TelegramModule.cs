@@ -5,6 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+
+using Matrix.Xmpp.XHtmlIM;
+
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -45,8 +48,7 @@ namespace ThunderED.Modules
                     await LogHelper.LogError("Token is not set for Telegram module!", Category);
                     return;
                 }
-                if (Settings.TelegramModule.RelayChannels.Count == 0 || Settings.TelegramModule.RelayChannels.All(a=> a.Telegram == 0)
-                                                                     || Settings.TelegramModule.RelayChannels.All(a=> a.Discord == 0))
+                if (Settings.TelegramModule.RelayChannels.Count == 0)
                 {
                     await LogHelper.LogError("No relay channels set for Telegram module!", Category);
                     return;
@@ -107,40 +109,48 @@ namespace ThunderED.Modules
 
             if (!Settings.TelegramModule.RelayFromTelegram) return;
 
-            var relay = Settings.TelegramModule.RelayChannels.FirstOrDefault(a=> a.Telegram == e.Message.Chat.Id);
-            if (relay == null) return;
-            if(relay.Discord == 0 || IsMessagePooled(e.Message.Text) || relay.TelegramFilters.Any(e.Message.Text.Contains) || relay.TelegramFiltersStartsWith.Any(e.Message.Text.StartsWith)) return;
+            foreach (var (channelname, channel) in Settings.TelegramModule.RelayChannels)
+            {
+                //var relay = Settings.TelegramModule.RelayChannels.FirstOrDefault(a=> a.Telegram == e.Message.Chat.Id);
+                var relay = channel;
+                if (relay == null || relay.Telegram != e.Message.Chat.Id) return;
+                if(relay.Discord == 0 || IsMessagePooled(e.Message.Text) || relay.TelegramFilters.Any(e.Message.Text.Contains) || relay.TelegramFiltersStartsWith.Any(e.Message.Text.StartsWith)) return;
 
-            var fromNick = $"{e.Message.From.FirstName} {e.Message.From.LastName}";
-            var fromName = e.Message.From.Username;
-            if(relay.TelegramUsers.Count > 0 && !relay.TelegramUsers.Contains(fromName) && !relay.TelegramUsers.Contains(fromNick)) return;
+                var fromNick = $"{e.Message.From.FirstName} {e.Message.From.LastName}";
+                var fromName = e.Message.From.Username;
+                if(relay.TelegramUsers.Count > 0 && !relay.TelegramUsers.Contains(fromName) && !relay.TelegramUsers.Contains(fromNick)) return;
 
-            var name = string.IsNullOrWhiteSpace(fromNick) ? fromName : fromNick;
-            var msg = $"[TM][{name}]: {e.Message.Text}";
-            UpdatePool(msg);
-            RelayMessage?.Invoke(msg, relay.Discord);
+                var name = string.IsNullOrWhiteSpace(fromNick) ? fromName : fromNick;
+                var msg = $"[TG][{name}]: {e.Message.Text}";
+                UpdatePool(msg);
+                RelayMessage?.Invoke(msg, relay.Discord);
+            }
         }
 
         public async Task SendMessage(ulong channel, ulong authorId, string user, string message)
         {
             if(_me == null || !APIHelper.IsDiscordAvailable) return;
             if(!Settings.TelegramModule.RelayFromDiscord) return;
-            var relay = Settings.TelegramModule.RelayChannels.FirstOrDefault(a => a.Discord == channel);
-            if(relay == null) return;
-            //filter by denial
-            if(relay.Telegram == 0 || IsMessagePooled(message) || relay.DiscordFilters.Any(message.Contains) || relay.DiscordFiltersStartsWith.Any(message.StartsWith)) return;
-            //filter by allowance
-            if(relay.DiscordAllowFilters.Any() && !relay.DiscordAllowFilters.Any(a=> message.Contains(a, StringComparison.OrdinalIgnoreCase))) return;
-            //check if we relay only bot messages
-            if (relay.RelayFromDiscordBotOnly)
-            {
-                var u = APIHelper.DiscordAPI.GetUser(authorId);
-                if(u==null || APIHelper.DiscordAPI.GetCurrentUser().Id != u.Id) return;
-            }
 
-            var msg = $"[DISCORD][{user}]: {message}";
-            UpdatePool(msg);
-            await _client.SendTextMessageAsync(relay.Telegram, msg);
+            foreach (var (channelname, chan) in Settings.TelegramModule.RelayChannels)
+            {
+                var relay = chan;
+                if(relay == null || relay.Discord != channel) return;
+                //filter by denial
+                if(relay.Telegram == 0 || IsMessagePooled(message) || relay.DiscordFilters.Any(message.Contains) || relay.DiscordFiltersStartsWith.Any(message.StartsWith)) return;
+                //filter by allowance
+                if(relay.DiscordAllowFilters.Any() && !relay.DiscordAllowFilters.Any(a=> message.Contains(a, StringComparison.OrdinalIgnoreCase))) return;
+                //check if we relay only bot messages
+                if (relay.RelayFromDiscordBotOnly)
+                {
+                    var u = APIHelper.DiscordAPI.GetUser(authorId);
+                    if(u==null || APIHelper.DiscordAPI.GetCurrentUser().Id != u.Id) return;
+                }
+
+                var msg = $"[DISCORD][{user}]: {message}";
+                UpdatePool(msg);
+                await _client.SendTextMessageAsync(relay.Telegram, msg);
+            }
         }
 
         #region Pooling
