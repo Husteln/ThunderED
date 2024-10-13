@@ -51,7 +51,7 @@ namespace ThunderED.Modules
                 }
 
                 foreach (var (channelname, channel) in Settings.TelegramModule.RelayChannels) {
-                    await LogHelper.LogInfo($"Checking parameters...{channelname}: Telegram - {channel.Telegram}, Discord - {channel.Discord}", Category);
+                    await LogHelper.LogInfo($"Checking parameters... Channel {channelname}: Telegram - {channel.Telegram}, Discord - {channel.Discord}", Category);
                     if (channel.Telegram == 0)
                     {
                         await LogHelper.LogError($"No relay channels set for Telegram module channel {channelname}!", Category);
@@ -108,9 +108,9 @@ namespace ThunderED.Modules
 
         }
 
-        private void BotClient_OnMessage(object sender, Telegram.Bot.Args.MessageEventArgs e)
+        private async void BotClient_OnMessage(object sender, Telegram.Bot.Args.MessageEventArgs e)
         {
-            LogHelper.LogDebug($"Received telegram message from {e.Message.Chat.Id}, processing", Category);
+            await LogHelper.LogDebug($"Received telegram message from {e.Message.Chat.Id}, processing", Category);
 
             if(e.Message.Type != MessageType.Text || e.Message.Chat.Type == ChatType.Private || !APIHelper.IsDiscordAvailable) return;
 
@@ -119,7 +119,7 @@ namespace ThunderED.Modules
             foreach (var (channelname, channel) in Settings.TelegramModule.RelayChannels)
             {
                 //var relay = Settings.TelegramModule.RelayChannels.FirstOrDefault(a=> a.Telegram == e.Message.Chat.Id);
-                LogHelper.LogDebug($"Decision tree - telegram settings channel {channelname}", Category);
+                await LogHelper.LogDebug($"Decision tree - telegram settings channel {channelname}", Category);
 
                 var relay = channel;
                 if (relay == null || relay.Telegram != e.Message.Chat.Id) return;
@@ -138,14 +138,14 @@ namespace ThunderED.Modules
 
         public async Task SendMessage(ulong channel, ulong authorId, string user, string message)
         {
-            LogHelper.LogDebug($"Sendmessage block for Discord {channel}", Category);
+            await LogHelper.LogDebug($"Sendmessage block for Discord {channel}", Category);
 
             if(_me == null || !APIHelper.IsDiscordAvailable) return;
             if(!Settings.TelegramModule.RelayFromDiscord) return;
 
             foreach (var (channelname, chan) in Settings.TelegramModule.RelayChannels)
             {
-                LogHelper.LogDebug($"Decision tree for {channelname}", Category);
+                await LogHelper.LogDebug($"Decision tree for {channelname}", Category);
 
                 var relay = chan;
                 if(relay == null || relay.Discord != channel) return;
