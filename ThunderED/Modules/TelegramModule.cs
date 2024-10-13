@@ -42,14 +42,16 @@ namespace ThunderED.Modules
             IsRunning = true;
             try
             {
-                var TelegramChannelData = Settings.TelegramModule.GetEnabledGroups().ToDictionary(pair => pair.Key, pair => pair.Value);
+
                 await LogHelper.LogModule("Initializing Telegram module...", Category);
                 if (Settings.TelegramModule == null || string.IsNullOrEmpty(Settings.TelegramModule.Token))
                 {
                     await LogHelper.LogError("Token is not set for Telegram module!", Category);
                     return;
                 }
-                foreach (var (channelname, channel) in TelegramChannelData) {
+
+                foreach (var (channelname, channel) in Settings.TelegramModule.GetEnabledGroups()) {
+                    await LogHelper.LogDebug($"Checking parameters...{channelname}: Telegram - {channel.Telegram}, Discord - {channel.Discord}", Category);
                     if (channel.Telegram == 0)
                     {
                         await SendOneTimeWarning(channelname, $" No relay channels set for Telegram module!");
@@ -114,9 +116,7 @@ namespace ThunderED.Modules
 
             if (!Settings.TelegramModule.RelayFromTelegram) return;
             
-            var TelegramChannelData = Settings.TelegramModule.GetEnabledGroups().ToDictionary(pair => pair.Key, pair => pair.Value);
-
-            foreach (var (channelname, channel) in TelegramChannelData)
+            foreach (var (channelname, channel) in Settings.TelegramModule.GetEnabledGroups())
             {
                 //var relay = Settings.TelegramModule.RelayChannels.FirstOrDefault(a=> a.Telegram == e.Message.Chat.Id);
                 LogHelper.LogDebug($"Decision tree - telegram settings channel {channelname}", Category);
@@ -143,9 +143,7 @@ namespace ThunderED.Modules
             if(_me == null || !APIHelper.IsDiscordAvailable) return;
             if(!Settings.TelegramModule.RelayFromDiscord) return;
 
-            var TelegramChannelData = Settings.TelegramModule.GetEnabledGroups().ToDictionary(pair => pair.Key, pair => pair.Value);
-
-            foreach (var (channelname, chan) in TelegramChannelData)
+            foreach (var (channelname, chan) in Settings.TelegramModule.GetEnabledGroups())
             {
                 LogHelper.LogDebug($"Decision tree for {channelname}", Category);
 
