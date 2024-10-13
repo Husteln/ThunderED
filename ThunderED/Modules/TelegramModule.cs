@@ -122,12 +122,12 @@ namespace ThunderED.Modules
                 await LogHelper.LogDebug($"Decision tree - telegram settings channel {channelname}", Category);
 
                 var relay = chan;
-                if (relay == null || relay.Telegram != e.Message.Chat.Id) return;
-                if(relay.Discord == 0 || IsMessagePooled(e.Message.Text) || relay.TelegramFilters.Any(e.Message.Text.Contains) || relay.TelegramFiltersStartsWith.Any(e.Message.Text.StartsWith)) return;
+                if (relay == null || relay.Telegram != e.Message.Chat.Id) continue;
+                if(relay.Discord == 0 || IsMessagePooled(e.Message.Text) || relay.TelegramFilters.Any(e.Message.Text.Contains) || relay.TelegramFiltersStartsWith.Any(e.Message.Text.StartsWith)) continue;
 
                 var fromNick = $"{e.Message.From.FirstName} {e.Message.From.LastName}";
                 var fromName = e.Message.From.Username;
-                if(relay.TelegramUsers.Count > 0 && !relay.TelegramUsers.Contains(fromName) && !relay.TelegramUsers.Contains(fromNick)) return;
+                if(relay.TelegramUsers.Count > 0 && !relay.TelegramUsers.Contains(fromName) && !relay.TelegramUsers.Contains(fromNick)) continue;
 
                 var name = string.IsNullOrWhiteSpace(fromNick) ? fromName : fromNick;
                 var msg = $"[TG][{name}]: {e.Message.Text}";
@@ -148,16 +148,16 @@ namespace ThunderED.Modules
             {
                 await LogHelper.LogInfo($"Sendmessage block for {channelname}:{chan.Discord}/{channel}", Category);
                 var relay = chan;
-                if(relay == null || relay.Discord != channel) return;
+                if(relay == null || relay.Discord != channel) continue;
                 //filter by denial
-                if(relay.Telegram == 0 || IsMessagePooled(message) || relay.DiscordFilters.Any(message.Contains) || relay.DiscordFiltersStartsWith.Any(message.StartsWith)) return;
+                if(relay.Telegram == 0 || IsMessagePooled(message) || relay.DiscordFilters.Any(message.Contains) || relay.DiscordFiltersStartsWith.Any(message.StartsWith)) continue;
                 //filter by allowance
-                if(relay.DiscordAllowFilters.Any() && !relay.DiscordAllowFilters.Any(a=> message.Contains(a, StringComparison.OrdinalIgnoreCase))) return;
+                if(relay.DiscordAllowFilters.Any() && !relay.DiscordAllowFilters.Any(a=> message.Contains(a, StringComparison.OrdinalIgnoreCase))) continue;
                 //check if we relay only bot messages
                 if (relay.RelayFromDiscordBotOnly)
                 {
                     var u = APIHelper.DiscordAPI.GetUser(authorId);
-                    if(u==null || APIHelper.DiscordAPI.GetCurrentUser().Id != u.Id) return;
+                    if(u==null || APIHelper.DiscordAPI.GetCurrentUser().Id != u.Id) continue;
                 }
 
                 await LogHelper.LogInfo($"Sent to TG {relay.Telegram}!", Category);
