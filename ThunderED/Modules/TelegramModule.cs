@@ -50,7 +50,7 @@ namespace ThunderED.Modules
                     return;
                 }
 
-                foreach (var (channelname, channel) in Settings.TelegramModule.GetEnabledGroups()) {
+                foreach (var (channelname, channel) in Settings.TelegramModule.RelayChannels) {
                     await LogHelper.LogDebug($"Checking parameters...{channelname}: Telegram - {channel.Telegram}, Discord - {channel.Discord}", Category);
                     if (channel.Telegram == 0)
                     {
@@ -116,7 +116,7 @@ namespace ThunderED.Modules
 
             if (!Settings.TelegramModule.RelayFromTelegram) return;
             
-            foreach (var (channelname, channel) in Settings.TelegramModule.GetEnabledGroups())
+            foreach (var (channelname, channel) in Settings.TelegramModule.RelayChannels)
             {
                 //var relay = Settings.TelegramModule.RelayChannels.FirstOrDefault(a=> a.Telegram == e.Message.Chat.Id);
                 LogHelper.LogDebug($"Decision tree - telegram settings channel {channelname}", Category);
@@ -143,7 +143,7 @@ namespace ThunderED.Modules
             if(_me == null || !APIHelper.IsDiscordAvailable) return;
             if(!Settings.TelegramModule.RelayFromDiscord) return;
 
-            foreach (var (channelname, chan) in Settings.TelegramModule.GetEnabledGroups())
+            foreach (var (channelname, chan) in Settings.TelegramModule.RelayChannels)
             {
                 LogHelper.LogDebug($"Decision tree for {channelname}", Category);
 
