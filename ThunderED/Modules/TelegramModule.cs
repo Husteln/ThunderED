@@ -51,10 +51,10 @@ namespace ThunderED.Modules
                 }
 
                 foreach (var (channelname, channel) in Settings.TelegramModule.RelayChannels) {
-                    await LogHelper.LogDebug($"Checking parameters...{channelname}: Telegram - {channel.Telegram}, Discord - {channel.Discord}", Category);
+                    await LogHelper.LogInfo($"Checking parameters...{channelname}: Telegram - {channel.Telegram}, Discord - {channel.Discord}", Category);
                     if (channel.Telegram == 0)
                     {
-                        await SendOneTimeWarning(channelname, $" No relay channels set for Telegram module!");
+                        await LogHelper.LogError($"No relay channels set for Telegram module channel {channelname}!", Category);
                         return;
                     }
                 }
