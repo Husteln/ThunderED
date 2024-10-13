@@ -116,12 +116,12 @@ namespace ThunderED.Modules
 
             if (!Settings.TelegramModule.RelayFromTelegram) return;
             
-            foreach (var (channelname, channel) in Settings.TelegramModule.RelayChannels)
+            foreach (var (channelname, chan) in Settings.TelegramModule.RelayChannels)
             {
                 //var relay = Settings.TelegramModule.RelayChannels.FirstOrDefault(a=> a.Telegram == e.Message.Chat.Id);
                 await LogHelper.LogDebug($"Decision tree - telegram settings channel {channelname}", Category);
 
-                var relay = channel;
+                var relay = chan;
                 if (relay == null || relay.Telegram != e.Message.Chat.Id) return;
                 if(relay.Discord == 0 || IsMessagePooled(e.Message.Text) || relay.TelegramFilters.Any(e.Message.Text.Contains) || relay.TelegramFiltersStartsWith.Any(e.Message.Text.StartsWith)) return;
 
@@ -131,6 +131,7 @@ namespace ThunderED.Modules
 
                 var name = string.IsNullOrWhiteSpace(fromNick) ? fromName : fromNick;
                 var msg = $"[TG][{name}]: {e.Message.Text}";
+                await LogHelper.LogInfo($"Sent to DS {relay.Discord}!", Category);
                 UpdatePool(msg);
                 RelayMessage?.Invoke(msg, relay.Discord);
             }
@@ -138,15 +139,14 @@ namespace ThunderED.Modules
 
         public async Task SendMessage(ulong channel, ulong authorId, string user, string message)
         {
-            await LogHelper.LogDebug($"Sendmessage block for Discord {channel}", Category);
+
 
             if(_me == null || !APIHelper.IsDiscordAvailable) return;
             if(!Settings.TelegramModule.RelayFromDiscord) return;
 
             foreach (var (channelname, chan) in Settings.TelegramModule.RelayChannels)
             {
-                await LogHelper.LogDebug($"Decision tree for {channelname}", Category);
-
+                await LogHelper.LogInfo($"Sendmessage block for {channelname}:{chan.Discord}/{channel}", Category);
                 var relay = chan;
                 if(relay == null || relay.Discord != channel) return;
                 //filter by denial
@@ -160,6 +160,7 @@ namespace ThunderED.Modules
                     if(u==null || APIHelper.DiscordAPI.GetCurrentUser().Id != u.Id) return;
                 }
 
+                await LogHelper.LogInfo($"Sent to TG {relay.Telegram}!", Category);
                 var msg = $"[DS][{user}]: {message}";
                 UpdatePool(msg);
                 await _client.SendTextMessageAsync(relay.Telegram, msg);
