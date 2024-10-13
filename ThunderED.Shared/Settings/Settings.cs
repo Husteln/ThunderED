@@ -1254,8 +1254,13 @@ namespace ThunderED
         [Required]
         public ObservableCollection<TelegramRelay> RelayChannels { get; set; } = new ObservableCollection<TelegramRelay>();
 #else
-        public List<KeyValuePair<string, TelegramRelay>> RelayChannels { get; set; } =  new ();
+        public Dictionary<string, TelegramRelay> RelayChannels { get; set; } = new Dictionary<string, TelegramRelay>();
 #endif
+        public Dictionary<string, TelegramRelay> GetEnabledGroups()
+        {
+            return RelayChannels.Where(a => a.Value.IsEnabled).ToDictionary(a => a.Key, a => a.Value);
+        }
+    
 #if EDITOR
         public override string this[string columnName]
         {
@@ -1277,6 +1282,8 @@ namespace ThunderED
     {
         [Comment("Telegram channel numeric ID")]
         [Required]
+        public bool IsEnabled { get; set; } = true;
+        [Comment("Is config element enabled at runtime")]
         public long Telegram { get; set; }
         [Comment("Discord channel numeric ID")]
         [Required]
